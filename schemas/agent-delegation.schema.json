@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/agent-delegation.schema.json",
+  "title": "YunFlowAgentDelegationPreview",
+  "description": "[PREVIEW] Schema for A2A peer agent subscription and delegated intent dispatch",
+  "type": "object",
+  "properties": {
+    "origin": {
+      "type": "object",
+      "required": ["type", "agent_id", "causality"],
+      "properties": {
+        "type": { "type": "string", "enum": ["human", "agent", "scheduler"] },
+        "agent_id": { "type": "string" },
+        "session_id": { "type": "string" },
+        "causality": {
+          "type": "object",
+          "required": ["root_operation_id", "depth"],
+          "properties": {
+            "root_operation_id": { "type": "string" },
+            "parent_intent_id": { "type": "string" },
+            "depth": { "type": "integer", "minimum": 0, "maximum": 10 }
+          }
+        }
+      }
+    },
+    "delegation_grant": {
+      "type": "object",
+      "properties": {
+        "grant_id": { "type": "string" },
+        "max_risk_level": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+        "expires_at": { "type": "integer" }
+      }
+    }
+  }
+}

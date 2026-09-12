@@ -75,7 +75,7 @@ pub struct StatePatchParams {
     pub patch: Vec<JsonPatchOperation>,
 }
 
-/// Uplink: Intent Dispatch from UI Surface.
+/// Uplink: Intent Dispatch from UI Surface or Peer Agent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IntentDispatchParams<TPayload = serde_json::Value> {
     pub intent_id: String,
@@ -85,6 +85,9 @@ pub struct IntentDispatchParams<TPayload = serde_json::Value> {
     pub payload: TPayload,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub checkpoint: Option<PreflightCheckpoint>,
+    /// [PREVIEW] Origin metadata identifying caller (human operator or peer agent).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub origin: Option<IntentOrigin>,
 }
 
 /// Preflight security checkpoint for dangerous actions.
@@ -103,6 +106,35 @@ pub enum RiskLevel {
     Medium,
     High,
     Critical,
+}
+
+/// [PREVIEW] Metadata identifying caller origin in A2A or Human-to-Agent flows.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IntentOrigin {
+    #[serde(rename = "type")]
+    pub origin_type: OriginType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
+    pub causality: CausalityTrace,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OriginType {
+    Human,
+    Agent,
+    Scheduler,
+}
+
+/// [PREVIEW] Causality trace for preventing multi-agent loops and enforcing DAG bounds.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CausalityTrace {
+    pub root_operation_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_intent_id: Option<String>,
+    pub depth: u32,
 }
 
 /// Capability Snapshot emitted by capability detectors.
@@ -154,5 +186,38 @@ mod tests {
 
         let deserialized: StatePatchParams = serde_json::from_str(&json).expect("deserialization works");
         assert_eq!(deserialized, patch);
+    }
+
+    #[test]
+    fn test_a2a_intent_with_causality() {
+        let intent = IntentDispatchParams {
+            intent_id: "intent-a2a-001".to_string(),
+            surface_id: "sre-control-center".to_string(),
+            intent_name: "remediate_oom".to_string(),
+            timestamp: 1789134025000,
+            payload: serde_json::json!({ "node": "worker-1" }),
+            checkpoint: Some(PreflightCheckpoint {
+                risk_level: RiskLevel::High,
+                requires_confirmation: true,
+                confirmation_message: Some("High risk node drain".to_string()),
+            }),
+            origin: Some(IntentOrigin {
+                origin_type: OriginType::Agent,
+                agent_id: Some("agent-diag-01".to_string()),
+                session_id: Some("sess-101".to_string()),
+                causality: CausalityTrace {
+                    root_operation_id: "op-root-1".to_string(),
+                    parent_intent_id: None,
+                    depth: 1,
+                },
+            }),
+        };
+
+        let json = serde_json::to_string(&intent).expect("serialize A2A intent");
+        assert!(json.contains("agent-diag-01"));
+        assert!(json.contains("causality"));
+
+        let deserialized: IntentDispatchParams = serde_json::from_str(&json).expect("deserialize A2A intent");
+        assert_eq!(deserialized, intent);
     }
 }
