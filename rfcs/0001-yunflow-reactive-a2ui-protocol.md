@@ -287,6 +287,70 @@ The envelope is strictly domain-agnostic:
 }
 ```
 
+### 4.4 State Synchronization, Reconnection & Catch-Up Protocol
+
+To ensure fault tolerance under network instability, client suspension (e.g. laptop sleep/wake), and daemon restarts, YunFlow defines a deterministic state synchronization and catch-up protocol.
+
+#### 4.4.1 Handshake & Catch-Up Initiation (`yunflow.session.handshake`)
+Upon establishing or re-establishing a transport channel (WebSocket / SSE), the client transmits a handshake request declaring its last acknowledged state coordinates:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.session.handshake",
+  "params": {
+    "surface_id": "sre-control-center",
+    "session_id": "sess-a899dfb3",
+    "client_epoch": "epoch-98a72b",
+    "last_revision": 1042,
+    "supported_compression": ["zstd", "none"]
+  },
+  "id": "hs-001"
+}
+```
+
+#### 4.4.2 Server Catch-Up Decision Matrix
+The Control Plane evaluates the client coordinates against its authoritative Event Store and Ring Buffer:
+
+| Scenario | Condition | Server Response Strategy | Action |
+|---|---|---|---|
+| **A. In-Sync** | `client_epoch == server_epoch` AND `last_revision == current_revision` | `yunflow.session.ack` (`status: "IN_SYNC"`) | Zero data sent; normal event listening resumes. |
+| **B. Delta Catch-Up** | `client_epoch == server_epoch` AND `0 < current_revision - last_revision <= MAX_PATCH_BUFFER` (default: 50) | `yunflow.state.catchup` (Sequential Patch Array) | Server streams buffered patches in order; client applies sequentially to reach `current_revision`. |
+| **C. Epoch Mismatch** | `client_epoch != server_epoch` (Server rebooted / Store rehydrated) | `yunflow.state.snapshot` (`status: "RESET"`) | Client drops local state entirely and hydrates from full snapshot. |
+| **D. Buffer Eviction** | `current_revision - last_revision > MAX_PATCH_BUFFER` | `yunflow.state.snapshot` (`status: "DESYNC_FALLBACK"`) | Incremental catch-up too expensive; server forces full snapshot. |
+
+#### 4.4.3 Delta Catch-Up Frame (`yunflow.state.catchup`)
+When within buffer limits, the server streams missing revisions as an atomic batch:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.state.catchup",
+  "params": {
+    "surface_id": "sre-control-center",
+    "from_revision": 1042,
+    "to_revision": 1045,
+    "patches": [
+      {
+        "revision": 1043,
+        "patch": [{ "op": "replace", "path": "/cluster_health", "value": "WARNING" }]
+      },
+      {
+        "revision": 1044,
+        "patch": [{ "op": "replace", "path": "/metrics/anomalies", "value": 1 }]
+      },
+      {
+        "revision": 1045,
+        "patch": [{ "op": "replace", "path": "/cluster_health", "value": "CRITICAL" }]
+      }
+    ]
+  }
+}
+```
+
+#### 4.4.4 Client Sync Invariants & Error Recovery
+1. **Strict Monotonicity**: A client MUST NOT apply any patch where `from_revision != current_client_revision`.
+2. **Atomic Fallback on Error**: If a JSON Patch operation fails (e.g., target array index out of bounds), the client MUST discard partial modifications and immediately dispatch `yunflow.state.sync_error` with code `-32001 (PatchRevisionConflict)` requesting an immediate authoritative snapshot.
+
 ---
 
 ## 5. Decoupled Capability Insight & The Trinitarian Detector Framework

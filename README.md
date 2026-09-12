@@ -6,6 +6,9 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![RFC-0001](https://img.shields.io/badge/RFC--0001-Core%20Reactive%20Flow-green.svg)](rfcs/0001-yunflow-reactive-a2ui-protocol.md)
 [![RFC-0002](https://img.shields.io/badge/RFC--0002%20[PREVIEW]-A2A%20Peer%20Collaboration-orange.svg)](rfcs/0002-a2a-peer-collaboration-preview.md)
+[![Quickstart](https://img.shields.io/badge/Docs-5min%20Quickstart-brightgreen.svg)](docs/quickstart-frontend.md)
+[![Security](https://img.shields.io/badge/Security-STRIDE%20Model-red.svg)](docs/security-model.md)
+[![Errors](https://img.shields.io/badge/Specs-Error%20Codes-lightgrey.svg)](docs/error-codes.md)
 [![Rust](https://img.shields.io/badge/Rust-1.80%2B-blue.svg)](src/lib.rs)
 
 ---
@@ -71,22 +74,28 @@ yun-flow/
 ├── README.md                               # Project overview and architecture
 ├── LICENSE                                 # Apache 2.0 License
 ├── Cargo.toml & src/lib.rs                 # Production Rust Serde implementation
+├── docs/                                   # Developer guides & system specs
+│   ├── quickstart-frontend.md              # 5-minute plugin developer quickstart
+│   ├── error-codes.md                      # System error code catalog & recovery
+│   └── security-model.md                   # Security threat model & STRIDE matrix
 ├── rfcs/                                   # Formal Request for Comments (RFCs)
 │   ├── 0001-yunflow-reactive-a2ui-protocol.md  # Core Reactive Flow (E2A + A2UI + A2E)
 │   ├── 0002-a2a-peer-collaboration-preview.md  # [PREVIEW] Structural A2A Collaboration
 │   └── template.md                         # Standard RFC template
-├── schemas/                                # Wire-level JSON Schemas
+├── schemas/                                # Wire-level JSON Schemas (Draft 2020-12)
 │   ├── envelope.schema.json                # JSON-RPC 2.0 framing
-│   ├── session-handshake.schema.json       # Session negotiation & attach
+│   ├── session-handshake.schema.json       # Session negotiation & sync handshake
 │   ├── state-projection.schema.json        # Snapshot & RFC 6902 Patch schema
 │   ├── intent-dispatch.schema.json         # Operator & Agent intent payload schema
+│   ├── cognitive-envelope.schema.json      # Dual-track cognitive envelope schema
 │   ├── capability-snapshot.schema.json     # Edge/Capability evidence schema
 │   ├── capability-detector.schema.json     # Pluggable detector schema
 │   └── agent-delegation.schema.json        # [PREVIEW] A2A peer delegation schema
 ├── types/yunflow.d.ts                       # Frontend TypeScript type declarations
 └── examples/                               # Concrete wire flow examples
     ├── sre-incident-flow/                  # SRE anomaly -> projection -> intent
-    └── cloud-board-flow/                   # Pure cloud / zero-edge plugin example
+    ├── cloud-board-flow/                   # Pure cloud / zero-edge plugin example
+    └── code-security-flow/                 # Dual-track code security flow example
 ```
 
 ---
