@@ -161,6 +161,78 @@ pub enum CapabilityStatus {
     Unauthorized,
 }
 
+/// Universal Cognitive Envelope for high-SNR human and agent handoffs.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CognitiveEnvelopeParams<TPayload = serde_json::Value> {
+    pub trace: CognitiveTrace,
+    pub target: CognitiveTarget,
+    pub cognition: CognitiveCapsule,
+    pub suggested_action: SuggestedAction<TPayload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub checkpoint: Option<PreflightCheckpoint>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CognitiveTrace {
+    pub flow_id: String,
+    pub origin: IntentOriginSummary,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub causality: Option<CausalityTrace>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct IntentOriginSummary {
+    #[serde(rename = "type")]
+    pub origin_type: OriginType,
+    pub agent_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CognitiveTarget {
+    pub domain: String,
+    pub resource_ref: ResourceRef,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResourceRef {
+    pub provider: String,
+    pub identifier: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scope: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub_target: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CognitiveCapsule {
+    pub summary: String,
+    pub rationale: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub evidence: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rejected_hypotheses: Vec<String>,
+    pub confidence: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub urgency: Option<UrgencyLevel>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum UrgencyLevel {
+    Low,
+    Normal,
+    High,
+    Immediate,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SuggestedAction<TPayload = serde_json::Value> {
+    pub intent_name: String,
+    pub parameters: TPayload,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -220,4 +292,53 @@ mod tests {
         let deserialized: IntentDispatchParams = serde_json::from_str(&json).expect("deserialize A2A intent");
         assert_eq!(deserialized, intent);
     }
+
+    #[test]
+    fn test_cognitive_envelope_serialization() {
+        let env = CognitiveEnvelopeParams {
+            trace: CognitiveTrace {
+                flow_id: "flow-sec-01".to_string(),
+                origin: IntentOriginSummary {
+                    origin_type: OriginType::Agent,
+                    agent_id: "agent-sec-01".to_string(),
+                    session_id: None,
+                },
+                causality: Some(CausalityTrace {
+                    root_operation_id: "op-01".to_string(),
+                    parent_intent_id: None,
+                    depth: 1,
+                }),
+            },
+            target: CognitiveTarget {
+                domain: "code.security".to_string(),
+                resource_ref: ResourceRef {
+                    provider: "git".to_string(),
+                    identifier: "services/order.py".to_string(),
+                    scope: Some("main".to_string()),
+                    sub_target: Some("L42-L58".to_string()),
+                },
+            },
+            cognition: CognitiveCapsule {
+                summary: "SQL Injection found".to_string(),
+                rationale: "Unparameterized input".to_string(),
+                evidence: vec!["AST format string".to_string()],
+                rejected_hypotheses: vec!["Checked WAF".to_string()],
+                confidence: 0.98,
+                urgency: Some(UrgencyLevel::Immediate),
+            },
+            suggested_action: SuggestedAction {
+                intent_name: "patch_sql".to_string(),
+                parameters: serde_json::json!({ "fix": "param_binding" }),
+            },
+            checkpoint: None,
+        };
+
+        let json = serde_json::to_string(&env).expect("serialize CognitiveEnvelope");
+        assert!(json.contains("code.security"));
+        assert!(json.contains("SQL Injection found"));
+
+        let deserialized: CognitiveEnvelopeParams = serde_json::from_str(&json).expect("deserialize CognitiveEnvelope");
+        assert_eq!(deserialized.target.domain, "code.security");
+    }
 }
+

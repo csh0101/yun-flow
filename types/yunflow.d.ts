@@ -127,4 +127,42 @@ export namespace YunFlow {
     wasm_spec?: { artifact_digest: string; entrypoint?: string };
     skill_spec?: { skill_name: string; execution_profile?: string; instructions?: string };
   }
+
+  /** Universal Cognitive Envelope */
+  export type UrgencyLevel = "LOW" | "NORMAL" | "HIGH" | "IMMEDIATE";
+
+  export interface ResourceRef {
+    provider: string;
+    identifier: string;
+    scope?: string;
+    sub_target?: string;
+  }
+
+  export interface CognitiveCapsule {
+    summary: string;
+    rationale: string;
+    evidence?: string[];
+    rejected_hypotheses?: string[];
+    confidence: number;
+    urgency?: UrgencyLevel;
+  }
+
+  export interface CognitiveEnvelopeParams<TPayload = Record<string, unknown>> {
+    trace: {
+      flow_id: string;
+      origin: { type: "human" | "agent" | "scheduler"; agent_id: string; session_id?: string };
+      causality?: { root_operation_id: string; parent_intent_id?: string; depth: number };
+    };
+    target: {
+      domain: string;
+      resource_ref: ResourceRef;
+    };
+    cognition: CognitiveCapsule;
+    suggested_action: {
+      intent_name: string;
+      parameters: TPayload;
+    };
+    checkpoint?: PreflightCheckpoint;
+  }
 }
+

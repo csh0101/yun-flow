@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/cognitive-envelope.schema.json",
+  "title": "YunFlowCognitiveEnvelope",
+  "description": "Universal dual-track cognitive handoff envelope for high-SNR human and agent collaboration",
+  "type": "object",
+  "required": ["jsonrpc", "method", "params"],
+  "properties": {
+    "jsonrpc": { "type": "string", "const": "2.0" },
+    "method": { "type": "string", "const": "yunflow.cognitive.handoff" },
+    "id": { "type": ["string", "integer", "null"] },
+    "params": {
+      "type": "object",
+      "required": ["trace", "target", "cognition", "suggested_action"],
+      "properties": {
+        "trace": {
+          "type": "object",
+          "required": ["flow_id", "origin"],
+          "properties": {
+            "flow_id": { "type": "string" },
+            "origin": {
+              "type": "object",
+              "required": ["type", "agent_id"],
+              "properties": {
+                "type": { "type": "string", "enum": ["human", "agent", "scheduler"] },
+                "agent_id": { "type": "string" },
+                "session_id": { "type": "string" }
+              }
+            },
+            "causality": {
+              "type": "object",
+              "required": ["root_operation_id", "depth"],
+              "properties": {
+                "root_operation_id": { "type": "string" },
+                "parent_intent_id": { "type": "string" },
+                "depth": { "type": "integer", "minimum": 0, "maximum": 10 }
+              }
+            }
+          }
+        },
+        "target": {
+          "type": "object",
+          "required": ["domain", "resource_ref"],
+          "properties": {
+            "domain": { "type": "string" },
+            "resource_ref": {
+              "type": "object",
+              "required": ["provider", "identifier"],
+              "properties": {
+                "provider": { "type": "string" },
+                "identifier": { "type": "string" },
+                "scope": { "type": "string" },
+                "sub_target": { "type": "string" }
+              }
+            }
+          }
+        },
+        "cognition": {
+          "type": "object",
+          "required": ["summary", "rationale", "confidence"],
+          "properties": {
+            "summary": { "type": "string" },
+            "rationale": { "type": "string" },
+            "evidence": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "rejected_hypotheses": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "urgency": { "type": "string", "enum": ["LOW", "NORMAL", "HIGH", "IMMEDIATE"] }
+          }
+        },
+        "suggested_action": {
+          "type": "object",
+          "required": ["intent_name", "parameters"],
+          "properties": {
+            "intent_name": { "type": "string" },
+            "parameters": { "type": "object" }
+          }
+        },
+        "checkpoint": {
+          "type": "object",
+          "properties": {
+            "risk_level": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+            "requires_human_confirmation": { "type": "boolean" },
+            "confirmation_message": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

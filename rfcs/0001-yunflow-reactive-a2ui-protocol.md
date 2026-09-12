@@ -221,6 +221,72 @@ When an operator interacts with the UI (clicking a button, triggering a runbook,
 1. **Non-destructive Intents**: Executed immediately by the Agent.
 2. **High-Risk Intents**: Suspended by the Control Plane's `PreflightGate`. The client presents an explicit confirmation dialog with an immutable summary of the action. Once authorized, the Agent initiates execution.
 
+### 4.3 The Universal Cognitive Envelope (`CognitiveEnvelope`)
+
+To resolve the fundamental tension between **serialization efficiency (compact JSON)** and **LLM cognitive signal-to-noise ratio (SNR)**, YunFlow formalizes the **Dual-Track Universal Cognitive Envelope**.
+
+Cold JSON diffs alone starve downstream agents or operators of reasoning context ("why was this conclusion reached? What was ruled out?"). Conversely, conversational text overflows with syntactic boilerplate and hallucinations.
+
+```text
+ ┌────────────────────────────────────────────────────────┐
+ │           YunFlow Universal Cognitive Envelope         │
+ ├─────────────────────────┬──────────────────────────────┤
+ │ 1. Trace (Causality)    │ flow_id, origin, depth       │
+ ├─────────────────────────┼──────────────────────────────┤
+ │ 2. Target (Grounding)   │ domain, resource_ref (URI)   │
+ ├─────────────────────────┼──────────────────────────────┤
+ │ 3. Cognition (High-SNR) │ summary, rationale, evidence,│
+ │                         │ rejected_hypotheses, conf    │
+ ├─────────────────────────┼──────────────────────────────┤
+ │ 4. Suggested Action     │ intent_name, parameters map  │
+ ├─────────────────────────┼──────────────────────────────┤
+ │ 5. Checkpoint (Safety)  │ risk_level, human_confirm    │
+ └─────────────────────────┴──────────────────────────────┘
+```
+
+#### The Dual-Track Model
+1. **Machine Grounding Track (Deterministic)**: `target.resource_ref` and `suggested_action.parameters` provide Serde-validated, deterministic execution targets with zero hallucination.
+2. **Cognitive Rationale Track (High-SNR Context)**:
+   - `summary`: One-sentence executive conclusion.
+   - `rationale`: Concise causal chain of reasoning.
+   - `evidence`: Specific pointers/anchors (Evidence by Reference, not inline dumps).
+   - `rejected_hypotheses`: Crucial list of ruled-out possibilities, preventing redundant agent exploration.
+   - `confidence`: Calibrated score (0.0 to 1.0).
+
+#### Universality Across Domains
+The envelope is strictly domain-agnostic:
+- **Software Security**: Code SQL injection (`code.security`).
+- **Cloud Infrastructure / SRE**: Node memory pressure (`infra.k8s`).
+- **Data Pipelines / BI**: Daily conversion rate anomalies (`biz.analytics`).
+- **Embodied Robotics**: Joint motor thermal alerts (`robot.motion`).
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.cognitive.handoff",
+  "params": {
+    "trace": { "flow_id": "flow-sec-9812", "origin": { "type": "agent", "agent_id": "agent-sec-auditor" } },
+    "target": {
+      "domain": "code.security",
+      "resource_ref": { "provider": "git", "identifier": "billing/services/order_service.py", "sub_target": "L42-L58" }
+    },
+    "cognition": {
+      "summary": "CWE-89 SQL Injection in order_service.py via raw string formatting",
+      "rationale": "User input order_id is interpolated into cursor.execute() without parameterized binding.",
+      "evidence": ["git://billing/services/order_service.py#L42-L58: AST BinOp dynamic format string"],
+      "rejected_hypotheses": ["Checked database driver: auto-escape is not enabled", "Checked WAF: internal endpoint bypasses Cloudflare"],
+      "confidence": 0.98,
+      "urgency": "IMMEDIATE"
+    },
+    "suggested_action": {
+      "intent_name": "generate_safe_patch",
+      "parameters": { "fix_pattern": "parameterized_query", "target_driver": "psycopg2" }
+    },
+    "checkpoint": { "risk_level": "MEDIUM", "requires_human_confirmation": false }
+  }
+}
+```
+
 ---
 
 ## 5. Decoupled Capability Insight & The Trinitarian Detector Framework

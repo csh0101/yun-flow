@@ -1,0 +1,54 @@
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.cognitive.handoff",
+  "id": "handoff-sec-001",
+  "params": {
+    "trace": {
+      "flow_id": "flow-sec-9812",
+      "origin": {
+        "type": "agent",
+        "agent_id": "agent-security-auditor",
+        "session_id": "sess-sec-101"
+      },
+      "causality": {
+        "root_operation_id": "op-git-push-4091",
+        "depth": 1
+      }
+    },
+    "target": {
+      "domain": "code.security",
+      "resource_ref": {
+        "provider": "git",
+        "identifier": "billing-system/services/order_service.py",
+        "scope": "main",
+        "sub_target": "L42-L58"
+      }
+    },
+    "cognition": {
+      "summary": "High-risk SQL Injection (CWE-89) in order_service.py via raw string formatting",
+      "rationale": "User input `order_id` is passed unvalidated into `cursor.execute(f'SELECT * FROM orders WHERE id = {order_id}')`.",
+      "evidence": [
+        "git://billing-system/services/order_service.py#L42-L58: AST BinOp dynamic format string",
+        "FastAPI route parameter @app.get('/orders/{order_id}') lacks Pydantic sanitize filter"
+      ],
+      "rejected_hypotheses": [
+        "Checked database driver settings: auto-escape is not enabled",
+        "Checked edge WAF: internal private endpoint, bypasses Cloudflare WAF"
+      ],
+      "confidence": 0.98,
+      "urgency": "IMMEDIATE"
+    },
+    "suggested_action": {
+      "intent_name": "generate_safe_patch",
+      "parameters": {
+        "fix_pattern": "parameterized_query",
+        "target_driver": "psycopg2"
+      }
+    },
+    "checkpoint": {
+      "risk_level": "MEDIUM",
+      "requires_human_confirmation": false,
+      "confirmation_message": "Generate safe pull request with parameterized query fix?"
+    }
+  }
+}
