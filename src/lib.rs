@@ -47,6 +47,8 @@ pub struct ProtocolError {
 /// Downlink: Full State Snapshot Hydration.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StateSnapshotParams<TState = serde_json::Value> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
     pub surface_id: String,
     pub revision: u64,
     pub epoch: String,
@@ -68,6 +70,8 @@ pub struct JsonPatchOperation {
 /// Downlink: Incremental State Patch (RFC 6902).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StatePatchParams {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
     pub surface_id: String,
     pub from_revision: u64,
     pub to_revision: u64,
@@ -79,6 +83,8 @@ pub struct StatePatchParams {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IntentDispatchParams<TPayload = serde_json::Value> {
     pub intent_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
     pub surface_id: String,
     pub intent_name: String,
     pub timestamp: u64,
@@ -240,6 +246,7 @@ mod tests {
     #[test]
     fn test_patch_serialization() {
         let patch = StatePatchParams {
+            session_id: Some("sess-a899dfb3".to_string()),
             surface_id: "sre-control-center".to_string(),
             from_revision: 1,
             to_revision: 2,
@@ -254,6 +261,7 @@ mod tests {
 
         let json = serde_json::to_string(&patch).expect("serialization works");
         assert!(json.contains("sre-control-center"));
+        assert!(json.contains("sess-a899dfb3"));
         assert!(json.contains("CRITICAL"));
 
         let deserialized: StatePatchParams = serde_json::from_str(&json).expect("deserialization works");
@@ -264,6 +272,7 @@ mod tests {
     fn test_a2a_intent_with_causality() {
         let intent = IntentDispatchParams {
             intent_id: "intent-a2a-001".to_string(),
+            session_id: Some("sess-101".to_string()),
             surface_id: "sre-control-center".to_string(),
             intent_name: "remediate_oom".to_string(),
             timestamp: 1789134025000,

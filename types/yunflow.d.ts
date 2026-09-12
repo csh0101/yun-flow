@@ -51,6 +51,7 @@ export namespace YunFlow {
 
   /** Downlink: State Projection */
   export interface StateSnapshotParams<TState = Record<string, unknown>> {
+    session_id?: string;
     surface_id: string;
     revision: number;
     epoch: string;
@@ -66,6 +67,7 @@ export namespace YunFlow {
   }
 
   export interface StatePatchParams {
+    session_id?: string;
     surface_id: string;
     from_revision: number;
     to_revision: number;
@@ -84,6 +86,7 @@ export namespace YunFlow {
 
   export interface IntentDispatchParams<TPayload = Record<string, unknown>> {
     intent_id: string;
+    session_id?: string;
     surface_id: string;
     intent_name: string;
     timestamp: number;

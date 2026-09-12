@@ -5,68 +5,98 @@
 - **Author**: Yun Architecture Working Group
 - **Status**: Proposed / Standard Track
 - **Created**: 2026-09-12
+- **Updated**: 2026-09-12 (Realigned with Chat-Centric Architecture)
 - **Target Version**: YunFlow v1.0.0
 
 ---
 
 ## 1. Abstract
 
-YunFlow is an open, reactive **A2UI (Agent-to-UI)** protocol specification designed for modern distributed AI agent systems. 
+YunFlow is an open, reactive **A2UI (Agent-to-UI)** protocol specification designed for modern distributed AI agent systems.
 
-While the industry has established standards for **A2A** (Agent-to-Agent communication) and **Agent-to-Tool** RPCs (such as Anthropic's Model Context Protocol / MCP), a critical void remains for **A2UI** (how an autonomous Agent animates, drives, and collaborates with rich, interactive graphical user interfaces).
+Yun is fundamentally a **Conversational Agent Operating System** (`apps/yun-desktop` / `crates/yun-agent` / `crates/yun-session`). Its primary cognitive and interaction spine is the **Chat Stream** (multi-turn conversation loop, Composer input, and message turns).
 
-YunFlow formalizes the contract between **Autonomous Agent Cognitive Engines** and **Interactive Frontend Viewports (Surfaces)**:
-1. **$UI = f(\text{Agent State})$**: Frontend surfaces act as pure functional viewports animated by streaming state projections.
-2. **Intent-Driven Interaction**: Human actions do not bypass the control plane; they emit structured *Intents* subject to security preflight checkpoints.
-3. **Decoupled Capability Insight**: Domain capabilities are discovered dynamically via a trinitarian detector framework (Declarative, Micro-Wasm, and Agentic Skill Probes) without baking domain assumptions into core hosts.
-4. **Industrial-Grade Managed Persistence**: Business state, events, and transactional inboxes/outboxes are anchored in an authoritative, namespaced Event Store to guarantee offline resilience and crash recovery.
+While the Chat Stream excels at natural language dialogue, reasoning chains, dynamic clarification (`AskUiState`), and intent guidance, complex operational domains (such as Kubernetes infrastructure, distributed systems, robotics, and code refactoring) also require **rich, high-density interactive spatial viewports** (live topology graphs, resource cards, heatmaps, and actionable runbooks).
+
+**YunFlow formalizes the companion reactive state stream** that connects the conversational AgentLoop to interactive frontend surfaces (Surfaces/Tabs/Canvases) within the same session:
+1. **$UI = f(\text{Agent State})$**: Frontend surfaces act as pure functional viewports animated by streaming state projections (RFC 6902 JSON Patch) alongside the active chat.
+2. **Intent-Driven Interaction & Chat Feedback Loop**: Human interactions on visual canvases do not bypass the system; they emit structured *Intents* that loop directly back into the Chat Session as turn events subject to security preflight checkpoints.
+3. **Decoupled Capability Insight**: Domain capabilities are discovered dynamically via a trinitarian detector framework (Declarative, Micro-Wasm, and Agentic Skill Probes) without hardcoding domain assumptions into core hosts.
+4. **Industrial-Grade Managed Persistence**: Business state, events, and transactional inboxes/outboxes are anchored in `yund`'s authoritative, namespaced Event Store to guarantee crash recovery and session replay.
 
 ---
 
-## 2. Motivation & Architectural Imperatives
+## 2. Motivation & The Symbiosis of Conversation and Surface
 
-### 2.1 The Limits of the Chatbox (C2A) and Raw Dashboards
+### 2.1 The Symbiosis: Chat-First Dialogue + Companion Reactive Surfaces
 
-Current AI systems predominantly operate under two flawed extremes when interacting with humans:
+Current AI systems often suffer from two disconnects:
+- **Disconnect A: The Raw Text Bottleneck (Chat-Only)**:
+  When an operator asks an agent to diagnose a 50-node cluster or inspect complex logs, dumping thousands of lines of raw text/JSON into the chat stream overwhelms the user and degrades readability.
+- **Disconnect B: The Static Dashboard Bypass (UI-Only)**:
+  Traditional static web consoles (Grafana, K8s Web UI) display rich widgets but completely bypass AI reasoning, diagnostics, and conversational guidance.
 
+Yun solves this through **Symbiosis (双轨共生)**:
 ```text
-[Extreme A: The Chatbox Bottleneck]          [Extreme B: The Static Dashboard Bypass]
- Human ◄──(Walls of Text/JSON)──► Agent         Human ◄──(Direct Web Queries)──► Backend DB
-                                                      (Agent is bypassed completely)
- ❌ Poor visual density for complex domains     ❌ Zero AI reasoning, diagnosis, or guardrails
- ❌ Manual copy-pasting of long CLI commands     ❌ Hardcoded credentials in frontend
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                           Yun Desktop (GPUI)                           │
+  │                                                                        │
+  │  【Track 1: Primary Cognitive Spine】     【Track 2: Companion Surface】│
+  │   Conversational Chat Stream               YunFlow Reactive Projection │
+  │                                                                        │
+  │   User: "Inspect cluster health"                                       │
+  │   Agent: "Found memory pressure on         ┌────────────────────────┐  │
+  │           worker-node-2. Projecting        │ Cluster Status: WARN   │  │
+  │           topology to viewport..."         │ [Node-1: OK]           │  │
+  │                                            │ [Node-2: MemoryAlert]  │  │
+  │   [Interaction: Approval Dialog]           │   [Safe Drain Button]  │  │
+  │   "Execute Safe Drain on node-2?" ◄────────┤  (User clicks button)  │  │
+  │                                            └────────────────────────┘  │
+  │   Intent loops back into Chat Turn ──────────────────┘                 │
+  └────────────────────────────────────────────────────────────────────────┘
 ```
 
-Complex operational domains (e.g., SRE infrastructure management, database administration, robotics, multi-cloud FinOps, CI/CD orchestration) require **rich, interactive visual canvases** (health cards, topology graphs, anomaly heatmaps, actionable runbooks). 
+1. **The Chat Stream is the Master Spine**: It retains conversation context, Chain-of-Thought explanations, user guidance, and audit history.
+2. **The YunFlow Surface is the High-Density Canvas**: It provides spatial orientation, visual summaries, and interactive controls.
+3. **Everything is Bound to the Session**: The Chat turns and the YunFlow state projections share the same `session_id`. An action in the viewport is seamlessly woven into the conversation history.
 
-Dumping raw CLI logs into a chat stream fails operators. Conversely, hardcoding traditional REST/GraphQL dashboards sidelines the Agent's reasoning, returning to dumb, unassisted monitoring.
-
-### 2.2 Core Philosophy: "Make the Viewport Flow, Don't Let Code Bypass"
+### 2.2 Core Philosophy: "Chat as Mind, Viewport as Canvas"
 
 YunFlow establishes the principle:
-> **"The plugin UI is a pure viewport shell; the Agent is the state engine. Data flows from observation to cognition, projects to the canvas, and human intent loops back to action."**
+> **"The conversation is the cognitive heart; the viewport is its dynamic visual canvas. Data flows from observation to cognition, projects to the canvas, and user intents in the canvas loop back into the conversation turn."**
 
 ---
 
 ## 3. Mental Model & Plane Separation
 
-YunFlow separates the system into three distinct, decoupled planes:
+YunFlow operates across three decoupled planes, firmly anchored by the **Chat Session**:
 
 ```mermaid
 flowchart TB
-    subgraph PresentationPlane["1. Presentation Plane (UI Surface)"]
-        UI["Plugin Viewport Shell (Webview / GPUI)<br/>UI = f(State Projection)"]
+    subgraph PresentationPlane["1. Presentation Plane (yun-desktop)"]
+        subgraph ChatSpine["Primary Dialog Spine (Chat Stream)"]
+            Composer["Composer (User Input & Slash Commands)"]
+            MsgList["Message List (Turn Events, Reasoning & Approvals)"]
+        end
+
+        subgraph ViewportSurfaces["Companion Viewports (YunFlow Streams)"]
+            UI["Plugin Surface (TabsPanel / Sandboxed Webview)<br/>UI = f(State Projection)"]
+        end
+
+        UI ==>|YunFlow: Intent Stream (Button Click)| MsgList
     end
 
     subgraph ControlPlane["2. Control Plane (yund / Cognitive Core)"]
-        AgentLoop["AgentLoop (Planner & Reasoner)"]
-        WasmState["State Reducer (Controller)"]
+        AgentLoop["AgentLoop (Planner, Reasoner & Turn Engine)"]
+        SessionStore["SessionStore & Managed Event Store"]
+        WasmState["State Reducer (Projection Controller)"]
         Preflight["Preflight Checkpoint & Security Broker"]
-        EventStore["Managed Event Store & Outbox (Persistence)"]
         CapRouter["Heterogeneous Capability Router"]
 
+        Composer -->|user/message| AgentLoop
+        AgentLoop -->|assistant/chunk| MsgList
         AgentLoop <--> WasmState
-        WasmState <--> EventStore
+        WasmState <--> SessionStore
         Preflight --> AgentLoop
         AgentLoop --> CapRouter
     end
@@ -89,15 +119,16 @@ flowchart TB
     EdgeNodes -.->|Observation Stream (Telemetry & Events)| AgentLoop
 ```
 
-### 3.1 The Presentation Plane (Surface Shell)
-- Frontend plugins (HTML/JS inside sandboxed Webviews or native GPUI components) maintain **zero direct credentials** (no kubeconfig, no database passwords).
-- Frontend code does not perform arbitrary outbound fetch/XHR to backend infrastructure.
-- It receives clean, high-order domain models via the **State Projection Stream** and re-renders reactively.
+### 3.1 The Presentation Plane (`yun-desktop`)
+- **Dual-Track Rendering**:
+  - **Chat Track**: GPUI-native Markdown message stream, tool execution badges, ask dialogs (`AskUiState`), and preflight approval buttons (`PendingApproval`).
+  - **Surface Track**: Sandboxed Webviews or native components in the Tabs panel ([`apps/yun-desktop/src/minke/tabs_panel.rs`](file:///Users/d-robotics/orca/dsh-rs/apps/yun-desktop/src/minke/tabs_panel.rs)) rendering pure projections.
+- **Zero Direct Credentials**: Frontend code never holds `kubeconfig` or database secrets; it only receives projected domain state and emits typed intents.
 
 ### 3.2 The Control Plane (`yund`)
 - The cognitive and authoritative heart of the system.
-- Hosts the **AgentLoop**, which reasons over goals, orchestrates tools, and evaluates domain health.
-- Manages **Namespaced Controller State** and the append-only **Event Store** to guarantee persistence across client restarts.
+- Hosts the **AgentLoop**, which drives conversation turns (`SessionTurnRuntime`), reasons over goals, executes tools, and evaluates domain health.
+- Manages **Namespaced Controller State** and the append-only **Event Store / SessionStore** to guarantee persistence across client restarts.
 
 ### 3.3 The Heterogeneous Capability Mesh
 - **AgentLoop is NOT coupled to any single host.**
@@ -129,12 +160,14 @@ YunFlow operates via two primary streams connecting the Presentation Plane and C
 The AgentLoop processes raw, disparate data sources and synthesizes a high-level **Domain State Projection**.
 
 #### A. Initial State Hydration (Snapshot)
-Upon client connection or reconnection, the server transmits a full snapshot:
+#### A. Initial State Hydration (Snapshot)
+Upon client connection or reconnection within a session, the server transmits a full snapshot:
 ```json
 {
   "jsonrpc": "2.0",
   "method": "yunflow.state.snapshot",
   "params": {
+    "session_id": "sess-a899dfb3",
     "surface_id": "sre-control-center",
     "revision": 1042,
     "epoch": "epoch-98a72b",
@@ -167,6 +200,7 @@ When the Agent detects an anomaly or updates its reasoning, it transmits an incr
   "jsonrpc": "2.0",
   "method": "yunflow.state.patch",
   "params": {
+    "session_id": "sess-a899dfb3",
     "surface_id": "sre-control-center",
     "from_revision": 1042,
     "to_revision": 1043,
@@ -191,7 +225,7 @@ When the Agent detects an anomaly or updates its reasoning, it transmits an incr
 
 ### 4.2 Uplink: Intent Stream (UI $\to$ Agent)
 
-When an operator interacts with the UI (clicking a button, triggering a runbook, adjusting a slider), the UI dispatches an **Intent**:
+When an operator interacts with the UI (clicking an action button, triggering a runbook, adjusting a configuration parameter), the UI dispatches a typed **Intent**:
 
 ```json
 {
@@ -199,6 +233,7 @@ When an operator interacts with the UI (clicking a button, triggering a runbook,
   "method": "yunflow.intent.dispatch",
   "params": {
     "intent_id": "intent-f81d4fae-7dec",
+    "session_id": "sess-a899dfb3",
     "surface_id": "sre-control-center",
     "intent_name": "execute_runbook",
     "timestamp": 1789134020000,
@@ -217,9 +252,18 @@ When an operator interacts with the UI (clicking a button, triggering a runbook,
 }
 ```
 
-#### Preflight Checkpoints & Human-in-the-Loop
-1. **Non-destructive Intents**: Executed immediately by the Agent.
+#### 4.2.1 Preflight Checkpoints & Human-in-the-Loop
+1. **Non-destructive Intents**: Executed immediately by the AgentLoop within the active session.
 2. **High-Risk Intents**: Suspended by the Control Plane's `PreflightGate`. The client presents an explicit confirmation dialog with an immutable summary of the action. Once authorized, the Agent initiates execution.
+
+#### 4.2.2 The Intent-to-Chat Feedback Loop (Closing the Dialogue)
+A foundational design principle of Yun is that **the Chat Session is the single authoritative ledger of all interactions**:
+1. **Turn Event Injection**: When an Intent is dispatched from a Surface, `yund`'s `SessionTurnRuntime` captures it as an `interaction/dispatch` event bound to the active `session_id`.
+2. **Chat Message Stream Representation**: The Desktop Chat message list ([`apps/yun-desktop/src/message_list.rs`](file:///Users/d-robotics/orca/dsh-rs/apps/yun-desktop/src/message_list.rs)) dynamically renders the action card:
+   > *"User triggered `Safe Node Drain` via SRE Control Center for node `worker-node-2`"*
+3. **In-Chat Preflight Approval**: If the intent requires human authorization, an interactive approval card ([`apps/yun-desktop/src/approval.rs`](file:///Users/d-robotics/orca/dsh-rs/apps/yun-desktop/src/approval.rs)) is displayed directly in the conversation flow.
+4. **Coordinated Resolution**: Upon approval, the AgentLoop executes the tool, streams progress into the Chat message list (`assistant/chunk` / `tool/update`), and publishes the resulting state delta to the Surface via `yunflow.state.patch`.
+5. This ensures that an operator can review the complete timeline—both conversational reasoning and visual UI operations—in one coherent conversation history.
 
 ### 4.3 The Universal Cognitive Envelope (`CognitiveEnvelope`)
 
@@ -326,6 +370,7 @@ When within buffer limits, the server streams missing revisions as an atomic bat
   "jsonrpc": "2.0",
   "method": "yunflow.state.catchup",
   "params": {
+    "session_id": "sess-a899dfb3",
     "surface_id": "sre-control-center",
     "from_revision": 1042,
     "to_revision": 1045,

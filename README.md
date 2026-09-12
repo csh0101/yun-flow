@@ -24,30 +24,39 @@ While Anthropic's **MCP (Model Context Protocol)** standardizes *Agent-to-Tool* 
 4. **A2A (Agent-to-Agent, Preview)**: Structured, zero-hallucination peer collaboration via shared state projections and causality DAGs.
 
 ```text
-                                 ┌─────────────────────────────────┐
-                                 │   Yun Desktop (Presentation)   │
-                                 └───────────────▲─────────────────┘
-                                                 │
-                                 【1. A2UI 面向人类的交互界面】
-                                 - 状态投影流 (State Projection)
-                                 - 意图触发流 (Intent Stream)
-                                                 │
- ┌───────────────────────┐       ┌───────────────▼─────────────────┐       ┌───────────────────────┐
- │ Peer Agent (Specialist)│◄─────►│    yund (Control / AgentLoop)   │◄─────►│  Peer Agent (Auditor) │
- └───────────────────────┘       │       【分布式中枢大脑】         │       └───────────────────────┘
-   【4. A2A (Preview)】          │   - 状态机计算与因果排序 (CAS)    │         【4. A2A (Preview)】
-   - 对等状态投影订阅            │   - 事务信箱与持久化 (EventStore)│         - 委托意图与深度熔断
-   - 结构化委托意图              └───────▲─────────────────┬───────┘
-                                         │                 │
-              【2. E2A 感觉神经 (环境感知流)】               【3. A2E 运动神经 (动作与执行流)】
-              - 连续遥测与故障上报 (Observation)             - 异构能力动态路由 (Capability Routing)
-              - 三模自适应环境嗅探 (Dynamic Probe)           - 强安全预检门禁 (Preflight Checkpoint)
-              - 环境变化副作用收集 (Effect Journal)          - 物理环境落地执行 (Edge / Tools)
-                                         │                 │
-                                 ┌───────┴─────────────────▼───────┐
-                                 │      Heterogeneous Substrates   │
-                                 │     (Edge / Cloud / Containers) │
-                                 └─────────────────────────────────┘
+                                  ┌─────────────────────────────────────────────────────────┐
+                                  │                  Yun Desktop (Presentation)             │
+                                  │                                                         │
+                                  │  ┌─────────────────────────┐   ┌─────────────────────┐  │
+                                  │  │ 【核心中轴：Chat 对话流】│   │【伴生视口：YunFlow】 │  │
+                                  │  │  - 消息流 / Composer    │◄─►│ - Tabs / Webview    │  │
+                                  │  │  - 意图审批 / 追问交互   │   │ - UI=f(StatePatch)  │  │
+                                  │  └────────────┬────────────┘   └──────────┬──────────┘  │
+                                  └───────────────┼───────────────────────────┼─────────────┘
+                                                  │ (user/message, chunks)    │ (A2UI Stream)
+                                                  │ 统一会话锚点 (session_id)  │
+                                                  ▼                           ▼
+  ┌───────────────────────┐       ┌─────────────────────────────────────────────────────────┐       ┌───────────────────────┐
+  │ Peer Agent (Specialist)│◄─────►│                yund (Control / AgentLoop)               │◄─────►│  Peer Agent (Auditor) │
+  └───────────────────────┘       │                 【分布式会话与认知中枢】                 │       └───────────────────────┘
+    【4. A2A (Preview)】          │   - 会话状态机与多轮推理 (Turn Engine & AgentLoop)      │         【4. A2A (Preview)】
+    - 对等状态投影订阅            │   - 状态机计算与因果排序 (CAS)                          │         - 委托意图与深度熔断
+    - 结构化委托意图              │   - 事务信箱与持久化 (SessionStore & EventStore)        │
+                                  └───────────────────────────▲─────────────────────────────┘
+                                                              │
+                                  ┌───────────────────────────┴─────────────────────────────┐
+                                  │                                                         │
+               【2. E2A 感觉神经 (环境感知流)】                               【3. A2E 运动神经 (动作与执行流)】
+               - 连续遥测与故障上报 (Observation)                             - 异构能力动态路由 (Capability Routing)
+               - 三模自适应环境嗅探 (Dynamic Probe)                           - 强安全预检门禁 (Preflight Checkpoint)
+               - 环境变化副作用收集 (Effect Journal)                          - 物理环境落地执行 (Edge / Tools)
+                                  │                                                         │
+                                  └───────────────────────────┬─────────────────────────────┘
+                                                              │
+                                  ┌───────────────────────────▼─────────────────────────────┐
+                                  │                 Heterogeneous Substrates                │
+                                  │                (Edge / Cloud / Containers)              │
+                                  └─────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -56,8 +65,8 @@ While Anthropic's **MCP (Model Context Protocol)** standardizes *Agent-to-Tool* 
 
 1. **Reactive State Projections (RFC 6902 JSON Patch)**:
    State updates stream down as compact JSON Patch operations, delivering fluid, sub-millisecond viewport reactivity without resending heavy snapshots.
-2. **Intent Stream & Human-in-the-Loop**:
-   User interactions emit typed `Intents`. High-risk operations pause at **Preflight Checkpoints** for operator authorization.
+2. **Chat-Companion Intent Stream & Human-in-the-Loop**:
+   User interactions on Surfaces emit typed `Intents` that loop back into the active Chat Session as Turn Events. High-risk operations pause at **Preflight Checkpoints** rendered directly in the conversation flow for operator authorization.
 3. **Decoupled Capability Insight**:
    Zero prior assumptions about future plugins. Capabilities are discovered dynamically via a **Trinitarian Detector Framework** (Declarative Rules, Micro-Wasm, and Agentic Skill Probes with AST read-only guardrails).
 4. **Managed Industrial Persistence**:

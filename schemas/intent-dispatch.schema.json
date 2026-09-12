@@ -14,6 +14,7 @@
       "required": ["intent_id", "surface_id", "intent_name", "timestamp", "payload"],
       "properties": {
         "intent_id": { "type": "string" },
+        "session_id": { "type": "string" },
         "surface_id": { "type": "string" },
         "intent_name": { "type": "string" },
         "timestamp": { "type": "integer" },
