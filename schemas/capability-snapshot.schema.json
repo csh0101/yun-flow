@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/capability-snapshot.schema.json",
+  "title": "YunFlowCapabilitySnapshot",
+  "description": "Schema for standardized capability snapshots emitted by capability detectors",
+  "type": "object",
+  "required": ["capability_kind", "status", "timestamp", "attributes"],
+  "properties": {
+    "capability_kind": { "type": "string" },
+    "edge_id": { "type": ["string", "null"] },
+    "status": {
+      "type": "string",
+      "enum": ["READY", "DEGRADED", "UNAVAILABLE", "UNAUTHORIZED"]
+    },
+    "timestamp": { "type": "integer" },
+    "attributes": { "type": "object" },
+    "available_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "error": {
+      "type": ["object", "null"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.state.patch",
+  "params": {
+    "surface_id": "sre-control-center",
+    "from_revision": 1,
+    "to_revision": 2,
+    "timestamp": 1789134020000,
+    "patch": [
+      { "op": "replace", "path": "/cluster_health", "value": "WARNING" },
+      { "op": "replace", "path": "/summary/active_incidents", "value": 1 },
+      {
+        "op": "add",
+        "path": "/incidents/0",
+        "value": {
+          "id": "inc-mem-902",
+          "title": "Node worker-node-2 has MemoryPressure",
+          "severity": "CRITICAL",
+          "ai_diagnosis": "Container payment-svc is consuming 94% host RAM due to unconstrained JVM heap.",
+          "suggested_runbook_id": "rb-node-drain-safe"
+        }
+      }
+    ]
+  }
+}

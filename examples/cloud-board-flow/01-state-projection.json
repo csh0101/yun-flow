@@ -1,0 +1,22 @@
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.state.snapshot",
+  "params": {
+    "surface_id": "github-pr-board",
+    "revision": 1,
+    "epoch": "epoch-gh-01",
+    "timestamp": 1789134030000,
+    "state": {
+      "repo": "csh0101/yun-flow",
+      "open_prs": [
+        {
+          "number": 1,
+          "title": "RFC-0001: YunFlow Reactive A2UI Protocol",
+          "author": "cs",
+          "ai_review_status": "APPROVED",
+          "summary": "Formalizes the A2UI state projection and intent stream specification."
+        }
+      ]
+    }
+  }
+}

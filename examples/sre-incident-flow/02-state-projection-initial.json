@@ -1,0 +1,27 @@
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.state.snapshot",
+  "params": {
+    "surface_id": "sre-control-center",
+    "revision": 1,
+    "epoch": "epoch-k3s-01",
+    "timestamp": 1789134005000,
+    "state": {
+      "cluster_health": "HEALTHY",
+      "cluster_name": "k3s-cluster-0429e7",
+      "summary": {
+        "nodes_ready": "2/2",
+        "pods_running": 18,
+        "active_incidents": 0
+      },
+      "incidents": [],
+      "quick_runbooks": [
+        {
+          "id": "rb-node-drain-safe",
+          "name": "Drain Node Safely",
+          "risk": "HIGH"
+        }
+      ]
+    }
+  }
+}

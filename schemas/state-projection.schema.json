@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/state-projection.schema.json",
+  "title": "YunFlowStateProjection",
+  "description": "Schema for YunFlow State Projection snapshot and patch messages",
+  "type": "object",
+  "required": ["jsonrpc", "method", "params"],
+  "properties": {
+    "jsonrpc": { "type": "string", "const": "2.0" },
+    "method": {
+      "type": "string",
+      "enum": ["yunflow.state.snapshot", "yunflow.state.patch"]
+    },
+    "params": {
+      "type": "object",
+      "required": ["surface_id", "timestamp"],
+      "properties": {
+        "surface_id": { "type": "string" },
+        "timestamp": { "type": "integer" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "epoch": { "type": "string" },
+        "from_revision": { "type": "integer", "minimum": 0 },
+        "to_revision": { "type": "integer", "minimum": 0 },
+        "state": { "type": "object" },
+        "patch": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["op", "path"],
+            "properties": {
+              "op": { "type": "string", "enum": ["add", "remove", "replace", "move", "copy", "test"] },
+              "path": { "type": "string" },
+              "value": {},
+              "from": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.intent.dispatch",
+  "id": "intent-req-001",
+  "params": {
+    "intent_id": "intent-94aa5c-drain",
+    "surface_id": "sre-control-center",
+    "intent_name": "execute_runbook",
+    "timestamp": 1789134025000,
+    "payload": {
+      "runbook_id": "rb-node-drain-safe",
+      "target_node": "worker-node-2",
+      "grace_period_seconds": 60
+    },
+    "checkpoint": {
+      "risk_level": "HIGH",
+      "requires_confirmation": true,
+      "confirmation_message": "Drain worker-node-2 to evict pods to healthy nodes?"
+    }
+  }
+}

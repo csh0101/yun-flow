@@ -1,0 +1,19 @@
+{
+  "jsonrpc": "2.0",
+  "method": "yunflow.intent.dispatch",
+  "id": "intent-req-002",
+  "params": {
+    "intent_id": "intent-merge-pr-1",
+    "surface_id": "github-pr-board",
+    "intent_name": "merge_pull_request",
+    "timestamp": 1789134035000,
+    "payload": {
+      "pr_number": 1,
+      "merge_method": "squash"
+    },
+    "checkpoint": {
+      "risk_level": "MEDIUM",
+      "requires_confirmation": false
+    }
+  }
+}

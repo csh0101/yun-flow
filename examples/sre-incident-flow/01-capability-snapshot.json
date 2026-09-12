@@ -1,0 +1,15 @@
+{
+  "capability_kind": "infra.k8s",
+  "edge_id": "k3s-root-01",
+  "status": "READY",
+  "timestamp": 1789134000000,
+  "attributes": {
+    "cluster_id": "k3s-cluster-0429e7",
+    "endpoint": "https://114.111.19.49:6443",
+    "server_version": "v1.28.2+k3s1",
+    "namespaces": ["default", "kube-system", "monitoring"],
+    "node_count": 2
+  },
+  "available_actions": ["k8s.list_pods", "k8s.get_logs", "k8s.drain_node", "k8s.restart_deployment"],
+  "error": null
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/intent-dispatch.schema.json",
+  "title": "YunFlowIntentDispatch",
+  "description": "Schema for YunFlow operator intent dispatch messages",
+  "type": "object",
+  "required": ["jsonrpc", "method", "params", "id"],
+  "properties": {
+    "jsonrpc": { "type": "string", "const": "2.0" },
+    "method": { "type": "string", "const": "yunflow.intent.dispatch" },
+    "id": { "type": ["string", "integer"] },
+    "params": {
+      "type": "object",
+      "required": ["intent_id", "surface_id", "intent_name", "timestamp", "payload"],
+      "properties": {
+        "intent_id": { "type": "string" },
+        "surface_id": { "type": "string" },
+        "intent_name": { "type": "string" },
+        "timestamp": { "type": "integer" },
+        "payload": { "type": "object" },
+        "checkpoint": {
+          "type": "object",
+          "properties": {
+            "risk_level": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+            "requires_confirmation": { "type": "boolean" },
+            "confirmation_message": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

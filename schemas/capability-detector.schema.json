@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/capability-detector.schema.json",
+  "title": "YunFlowCapabilityDetector",
+  "description": "Schema for decoupled capability detector definitions (Declarative, Wasm, or Agentic Skill)",
+  "type": "object",
+  "required": ["id", "target_capability", "kind"],
+  "properties": {
+    "id": { "type": "string" },
+    "target_capability": { "type": "string" },
+    "kind": {
+      "type": "string",
+      "enum": ["declarative", "wasm_sandbox", "agent_skill"]
+    },
+    "declarative_rules": {
+      "type": "object",
+      "properties": {
+        "env": { "type": "array", "items": { "type": "string" } },
+        "fs_paths": { "type": "array", "items": { "type": "string" } },
+        "tcp_ports": { "type": "array", "items": { "type": "integer" } },
+        "sockets": { "type": "array", "items": { "type": "string" } },
+        "exec": {
+          "type": "object",
+          "required": ["command"],
+          "properties": {
+            "command": { "type": "array", "items": { "type": "string" } },
+            "expect_exit_code": { "type": "integer", "default": 0 }
+          }
+        }
+      }
+    },
+    "wasm_spec": {
+      "type": "object",
+      "properties": {
+        "artifact_digest": { "type": "string" },
+        "entrypoint": { "type": "string", "default": "probe" }
+      }
+    },
+    "skill_spec": {
+      "type": "object",
+      "properties": {
+        "skill_name": { "type": "string" },
+        "execution_profile": { "type": "string", "default": "probe_only_readonly" },
+        "instructions": { "type": "string" }
+      }
+    }
+  }
+}
