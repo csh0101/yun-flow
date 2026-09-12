@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/envelope.schema.json",
+  "title": "YunFlowEnvelope",
+  "description": "Top-level JSON-RPC 2.0 wire framing envelope for all YunFlow messages",
+  "type": "object",
+  "required": ["jsonrpc"],
+  "properties": {
+    "jsonrpc": { "type": "string", "const": "2.0" },
+    "id": { "type": ["string", "integer", "null"] },
+    "method": { "type": "string" },
+    "params": { "type": "object" },
+    "result": {},
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "integer" },
+        "message": { "type": "string" },
+        "data": {}
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yunflow.org/schemas/session-handshake.schema.json",
+  "title": "YunFlowHandshake",
+  "description": "Client-server handshake and surface subscription negotiation schema",
+  "type": "object",
+  "required": ["jsonrpc", "method", "params"],
+  "properties": {
+    "jsonrpc": { "type": "string", "const": "2.0" },
+    "method": {
+      "type": "string",
+      "enum": [
+        "yunflow.handshake.initialize",
+        "yunflow.handshake.initialized",
+        "yunflow.surface.attach",
+        "yunflow.surface.detach"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "properties": {
+        "client_version": { "type": "string" },
+        "protocol_version": { "type": "string", "default": "1.0.0" },
+        "supported_features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["rfc6902_patch", "adaptive_cards", "compression_gzip"]
+          }
+        },
+        "surface_id": { "type": "string" },
+        "last_known_revision": { "type": "integer", "minimum": 0 },
+        "session_id": { "type": "string" }
+      }
+    }
+  }
+}
